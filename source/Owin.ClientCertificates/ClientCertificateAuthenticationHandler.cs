@@ -8,20 +8,23 @@ using Microsoft.Owin.Security.Infrastructure;
 using System.IdentityModel.Tokens;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using log4net;
 
 namespace Thinktecture.IdentityModel.Owin
 {
     public class ClientCertificateAuthenticationHandler : AuthenticationHandler<ClientCertificateAuthenticationOptions>
     {
+        private static ILog log = LogManager.GetLogger(typeof(ClientCertificateAuthenticationHandler));
         protected override Task<AuthenticationTicket> AuthenticateCoreAsync()
         {
+            log.Info("ClientCertificateAuthenticationHandler is called");
             var cert = Context.Get<X509Certificate2>("ssl.ClientCertificate");
 
             if (cert == null)
             {
                 return Task.FromResult<AuthenticationTicket>(null);
             }
-
+            log.Info($"ssl.ClientCertificate {cert.FriendlyName} {cert.SubjectName}");
             try
             {
                 Options.Validator.Validate(cert);
@@ -30,7 +33,7 @@ namespace Thinktecture.IdentityModel.Owin
             {
                 return Task.FromResult<AuthenticationTicket>(null);
             }
-
+            log.Info("ClientCertificate is valid");
             var identity = Identity.CreateFromCertificate(
                 cert,
                 Options.AuthenticationType,
